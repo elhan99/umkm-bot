@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Asisten UMKM - Admin</title>
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--fg:#111827;--muted:#6b7280;--line:#e5e7eb;--ok:#0a7d3b;--warn:#b45309;--bad:#b3261e;--brand:#128c7e;--in:#eef2ff;--out:#ecfdf5;--chip:#f3f4f6}
+@media(prefers-color-scheme:dark){:root{--bg:#0f1115;--card:#171a21;--fg:#f3f4f6;--muted:#9ca3af;--line:#2a2f3a;--ok:#34d399;--warn:#fbbf24;--bad:#f87171;--brand:#25d3a8;--in:#1e2235;--out:#13281f;--chip:#232834}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+header{background:var(--card);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
+.bar{max-width:1100px;margin:0 auto;padding:12px 16px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.bar h1{font-size:16px;margin:0;flex:1;min-width:180px}
+nav{display:flex;gap:4px}nav button{border:0;background:transparent;color:var(--muted);padding:8px 12px;border-radius:8px;font:inherit;cursor:pointer}
+nav button.on{background:var(--chip);color:var(--fg);font-weight:600}
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--muted)}.dot{width:9px;height:9px;border-radius:50%;background:var(--muted)}
+.pill.ready .dot{background:var(--ok)}.pill.qr .dot{background:var(--warn)}.pill.bad .dot{background:var(--bad)}
+main{max-width:1100px;margin:0 auto;padding:20px 16px 60px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:16px}
+h2{font-size:15px;margin:0 0 12px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.stat{border:1px solid var(--line);border-radius:10px;padding:12px;text-align:center}.stat b{display:block;font-size:22px}.stat span{color:var(--muted);font-size:12px}
+.qrbox{display:flex;flex-direction:column;align-items:center;gap:12px;margin:12px 0}
+.qrbox img{width:260px;height:260px;border-radius:10px;background:#fff;padding:8px;border:1px solid var(--line)}
+.muted{color:var(--muted)}ol{color:var(--muted);padding-left:20px;margin:0}
+input,select,textarea,button.btn{font:inherit;color:var(--fg);background:var(--card);border:1px solid var(--line);border-radius:8px;padding:8px 10px}
+textarea{width:100%;min-height:220px;font-family:ui-monospace,Menlo,monospace;font-size:13px}
+button.btn{cursor:pointer}button.btn:hover{border-color:var(--brand)}button.primary{background:var(--brand);border-color:var(--brand);color:#fff}
+.tools{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}.tools input{flex:1;min-width:160px}
+table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:12px;color:var(--muted);font-weight:600;white-space:nowrap}tbody tr.click{cursor:pointer}tbody tr.click:hover{background:var(--chip)}
+.tablewrap{overflow-x:auto}
+.badge{display:inline-block;padding:1px 8px;border-radius:99px;font-size:11px;background:var(--chip);color:var(--muted);white-space:nowrap}
+.badge.static{background:#dcfce7;color:#166534}.badge.ai{background:#e0e7ff;color:#3730a3}.badge.error{background:#fee2e2;color:#991b1b}.badge.system{background:#fef3c7;color:#92400e}
+.msgs{display:flex;flex-direction:column;gap:8px}
+.m{max-width:85%;padding:8px 12px;border-radius:12px;white-space:pre-wrap;word-break:break-word}
+.m.in{background:var(--in);align-self:flex-start}.m.out{background:var(--out);align-self:flex-end}
+.meta{font-size:11px;color:var(--muted);margin-top:4px;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.chips{display:flex;flex-wrap:wrap;gap:6px}.chip{padding:3px 10px;border-radius:99px;background:var(--chip);font-size:12px}
+.chip.selesai{background:#dcfce7;color:#166534}.chip.proses{background:#fef3c7;color:#92400e}
+.back{margin-bottom:12px}.hide{display:none!important}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:16px}@media(max-width:760px){.row2{grid-template-columns:1fr}}
+.clip{max-width:420px;white-space:pre-wrap;word-break:break-word}
+.empty{color:var(--muted);padding:20px;text-align:center}
+</style></head><body>
+<header><div class="bar">
+  <h1>Asisten UMKM · Nagari Panti Selatan</h1>
+  <nav id="nav">
+    <button data-tab="home" class="on">Ringkasan</button><button data-tab="users">Pengguna</button>
+    <button data-tab="messages">Pesan</button><button data-tab="content">Konten</button>
+  </nav>
+  <span id="pill" class="pill"><span class="dot"></span><span id="pilltxt">…</span></span>
+</div></header>
+<main>
+
+<section id="tab-home">
+  <div class="card"><h2>Koneksi WhatsApp</h2>
+    <div id="qrbox" class="qrbox hide"><img id="qr" alt="QR WhatsApp">
+      <ol><li>Buka WhatsApp di HP bot</li><li>Pengaturan → Perangkat tertaut → Tautkan perangkat</li><li>Arahkan kamera ke kode QR ini</li></ol></div>
+    <p id="phone" class="muted hide"></p>
+    <button id="logout" class="btn hide">Putuskan &amp; tautkan ulang</button>
+  </div>
+  <div class="card"><h2>Statistik</h2><div class="grid" id="stats"></div>
+    <p class="muted" style="margin:12px 0 0">Balasan <b>statis</b> dijawab dari konten tersimpan tanpa AI (gratis). Balasan <b>AI</b> memakai Claude Haiku (berbayar).</p></div>
+</section>
+
+<section id="tab-users" class="hide">
+  <div id="users-list"><div class="card">
+    <div class="tools"><input id="uq" placeholder="Cari nama, nomor, atau usaha…"></div>
+    <div class="tablewrap"><table><thead><tr><th>Pengguna</th><th>Usaha</th><th>Pesan (masuk/keluar)</th><th>Progres</th><th>Transaksi</th><th>Terakhir aktif</th></tr></thead><tbody id="utbody"></tbody></table></div>
+    <div id="uempty" class="empty hide">Belum ada pengguna.</div></div></div>
+  <div id="user-detail" class="hide"></div>
+</section>
+
+<section id="tab-messages" class="hide"><div class="card">
+  <div class="tools"><input id="mq" placeholder="Cari isi pesan…">
+    <select id="msrc"><option value="">Semua jenis</option><option value="static">Balasan statis</option><option value="ai">Balasan AI</option><option value="system">Sistem</option><option value="error">Error</option></select>
+    <label class="pill"><input type="checkbox" id="mauto" checked> auto-segarkan</label></div>
+  <div class="tablewrap"><table><thead><tr><th>Waktu</th><th>Pengguna</th><th>Arah</th><th>Pesan</th></tr></thead><tbody id="mtbody"></tbody></table></div>
+  <div id="mempty" class="empty hide">Tidak ada pesan.</div>
+  <p><button id="mmore" class="btn hide">Muat lebih lama</button></p></div></section>
+
+<section id="tab-content" class="hide"><div class="card">
+  <h2>Konten statis (dijawab tanpa AI)</h2>
+  <p class="muted">Perubahan langsung berlaku di bot. Konten yang Anda edit tidak ditimpa oleh pembaruan bawaan.</p>
+  <div class="tools"><select id="ckey"></select><span id="cmeta" class="muted"></span></div>
+  <textarea id="cbody"></textarea>
+  <p><button id="csave" class="btn primary">Simpan</button> <span id="cmsg" class="muted"></span></p></div></section>
+</main>
+
+<script>
+// Semua teks dari pengguna dirender dengan textContent (aman dari XSS).
+const $=(s)=>document.querySelector(s);
+const el=(tag,props={},...kids)=>{const e=document.createElement(tag);for(const[k,v]of Object.entries(props)){if(k==='class')e.className=v;else if(k==='text')e.textContent=v;else if(k.startsWith('on'))e.addEventListener(k.slice(2),v);else e.setAttribute(k,v)}for(const c of kids.flat())if(c!=null)e.append(c.nodeType?c:document.createTextNode(c));return e};
+const api=async(url,opts={})=>{const r=await fetch(url,{...opts,headers:{'X-Requested-With':'admin','Content-Type':'application/json',...(opts.headers||{})}});if(!r.ok)throw new Error(r.status);return r.json()};
+const fmt=(iso)=>iso?new Date(iso).toLocaleString('id-ID',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}):'-';
+const rp=(n)=>'Rp '+Number(n).toLocaleString('id-ID');
+const who=(u)=>u?(u.name||(u.phone?'+'+u.phone:'')||String(u.wa_id||'').split('@')[0]||'Tanpa nama'):'?';
+const phoneOf=(u)=>u?(u.phone?'+'+u.phone:String(u.wa_id||'')):'';
+const STEP={nib:'NIB',pirt:'PIRT',halal:'Halal',kemasan:'Kemasan',label:'Label',foto_produk:'Foto produk',shopee:'Shopee',tiktok_shop:'TikTok Shop'};
+let tab='home',timers=[];
+
+document.querySelectorAll('#nav button').forEach(b=>b.onclick=()=>show(b.dataset.tab));
+function show(t){tab=t;document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.tab===t));
+ for(const s of['home','users','messages','content'])$('#tab-'+s).classList.toggle('hide',s!==t);
+ if(t==='users'){$('#users-list').classList.remove('hide');$('#user-detail').classList.add('hide');loadUsers()}
+ if(t==='messages')loadMessages(true);if(t==='content')loadContent()}
+
+// ---- Ringkasan / status ----
+const L={starting:['Memulai…',''],qr:['Menunggu scan QR','qr'],authenticated:['Terautentikasi…','qr'],ready:['Terhubung','ready'],disconnected:['Terputus','bad']};
+async function tick(){try{const s=await api('api/status');const[t,c]=L[s.state]||[s.state,''];
+ $('#pill').className='pill '+c;$('#pilltxt').textContent=t;
+ if(s.qr){$('#qr').src=s.qr;$('#qrbox').classList.remove('hide')}else $('#qrbox').classList.add('hide');
+ $('#phone').textContent=s.phone?'Nomor bot: +'+s.phone:'';$('#phone').classList.toggle('hide',!s.phone);
+ $('#logout').classList.toggle('hide',s.state!=='ready');
+ if(s.stats){const st=s.stats,tot=st.staticReplies+st.aiReplies,pct=tot?Math.round(st.staticReplies*100/tot):0;
+  const box=$('#stats');box.replaceChildren(...[['Pengguna',st.users],['Total pesan',st.messages],['Balasan statis',st.staticReplies],['Balasan AI',st.aiReplies],['% tanpa AI',pct+'%'],['Transaksi',st.transactions],['Cek produk',st.checks]].map(([l,v])=>el('div',{class:'stat'},el('b',{text:String(v)}),el('span',{text:l}))))}
+ }catch(e){$('#pilltxt').textContent='Server tidak terjangkau'}}
+$('#logout').onclick=async()=>{if(confirm('Putuskan WhatsApp bot dan tampilkan QR baru?'))await api('api/logout',{method:'POST'})};
+
+// ---- Pengguna ----
+let utimer;$('#uq').oninput=()=>{clearTimeout(utimer);utimer=setTimeout(loadUsers,300)};
+async function loadUsers(){const rows=await api('api/users?q='+encodeURIComponent($('#uq').value));
+ $('#uempty').classList.toggle('hide',rows.length>0);
+ $('#utbody').replaceChildren(...rows.map(u=>el('tr',{class:'click',onclick:()=>openUser(u.id)},
+  el('td',{},el('b',{text:who(u)}),el('div',{class:'muted',text:phoneOf(u)})),
+  el('td',{text:[u.business_name,u.product_type].filter(Boolean).join(' · ')||'-'}),
+  el('td',{text:`${u.messages_in} / ${u.messages_out}`}),
+  el('td',{text:`${u.steps_done}/8 selesai`}),el('td',{text:String(u.tx_count)}),el('td',{text:fmt(u.last_seen_at)}))))}
+
+function bubble(m){return el('div',{class:'m '+m.direction},m.body,
+ el('div',{class:'meta'},fmt(m.created_at),m.source?el('span',{class:'badge '+m.source,text:m.source==='static'?'statis':m.source}):null,
+ m.tokens_in!=null?el('span',{text:`${m.tokens_in}→${m.tokens_out} token`}):null))}
+
+async function openUser(id){$('#users-list').classList.add('hide');const box=$('#user-detail');box.classList.remove('hide');box.replaceChildren(el('div',{class:'empty',text:'Memuat…'}));
+ const d=await api('api/users/'+id),u=d.user,pm=Object.fromEntries(d.progress.map(p=>[p.key,p]));
+ let before=null;const convo=el('div',{class:'msgs'}),more=el('button',{class:'btn',text:'Muat pesan lebih lama'});
+ async function loadConvo(){const q=new URLSearchParams({user_id:id,limit:'40'});if(before)q.set('before',before);
+  const rows=await api('api/messages?'+q);if(rows.length)before=rows[rows.length-1].id;
+  convo.prepend(...rows.slice().reverse().map(bubble));more.classList.toggle('hide',rows.length<40)}
+ more.onclick=loadConvo;
+ box.replaceChildren(
+  el('button',{class:'btn back',text:'← Semua pengguna',onclick:()=>{box.classList.add('hide');$('#users-list').classList.remove('hide')}}),
+  el('div',{class:'card'},el('h2',{text:who(u)}),
+   el('div',{class:'muted',text:`${phoneOf(u)} · bergabung ${fmt(u.created_at)} · terakhir aktif ${fmt(u.last_seen_at)}`}),
+   el('p',{text:'Usaha: '+([d.business?.name,d.business?.product_type].filter(Boolean).join(' · ')||'belum diisi')})),
+  el('div',{class:'row2'},
+   el('div',{class:'card'},el('h2',{text:'Progres'}),el('div',{class:'chips'},...Object.entries(STEP).map(([k,l])=>el('span',{class:'chip '+(pm[k]?.status||''),text:`${l}: ${pm[k]?.status||'belum'}`})))),
+   el('div',{class:'card'},el('h2',{text:'Cek produk terakhir'}),...(d.checks.length?d.checks.map(c=>el('p',{class:'clip',text:`${c.kind}${c.product_name?' ('+c.product_name+')':''} · skor ${c.score}/10 · ${c.summary||''}`})):[el('span',{class:'muted',text:'Belum ada.'})]))),
+  el('div',{class:'card'},el('h2',{text:'Transaksi terbaru'}),d.transactions.length?el('div',{class:'tablewrap'},el('table',{},el('tbody',{},...d.transactions.map(t=>el('tr',{},el('td',{text:t.tx_date}),el('td',{text:t.type}),el('td',{text:rp(t.amount)}),el('td',{text:t.category||'-'}),el('td',{text:t.note||''})))))):el('span',{class:'muted',text:'Belum ada.'})),
+  el('div',{class:'card'},el('h2',{text:'Percakapan'}),el('p',{},more),convo));
+ await loadConvo()}
+
+// ---- Semua pesan ----
+let mBefore=null,mq;const mrow=(m)=>el('tr',{class:'click',onclick:()=>{show('users');openUser(m.user_id)}},
+ el('td',{text:fmt(m.created_at)}),el('td',{},el('b',{text:who(m.users)}),el('div',{class:'muted',text:phoneOf(m.users)})),
+ el('td',{},el('span',{class:'badge '+(m.source||''),text:m.direction==='in'?'masuk':(m.source==='static'?'statis':m.source||'keluar')})),
+ el('td',{class:'clip',text:m.body.length>400?m.body.slice(0,400)+'…':m.body}));
+async function loadMessages(reset){if(reset)mBefore=null;const q=new URLSearchParams({limit:'50'});
+ if($('#mq').value)q.set('q',$('#mq').value);if($('#msrc').value)q.set('source',$('#msrc').value);if(!reset&&mBefore)q.set('before',mBefore);
+ const rows=await api('api/messages?'+q);if(rows.length)mBefore=rows[rows.length-1].id;
+ const trs=rows.map(mrow);if(reset)$('#mtbody').replaceChildren(...trs);else $('#mtbody').append(...trs);
+ $('#mempty').classList.toggle('hide',$('#mtbody').children.length>0);$('#mmore').classList.toggle('hide',rows.length<50)}
+$('#mmore').onclick=()=>loadMessages(false);$('#msrc').onchange=()=>loadMessages(true);
+$('#mq').oninput=()=>{clearTimeout(mq);mq=setTimeout(()=>loadMessages(true),300)};
+
+// ---- Konten statis ----
+let items=[];
+async function loadContent(){items=await api('api/content');const cur=$('#ckey').value;
+ $('#ckey').replaceChildren(...items.map(i=>el('option',{value:i.key,text:`${i.title} (${i.key})`})));if(cur)$('#ckey').value=cur;pick()}
+function pick(){const i=items.find(x=>x.key===$('#ckey').value);if(!i)return;$('#cbody').value=i.body;$('#cmeta').textContent=(i.customized?'diedit admin · ':'bawaan · ')+'diperbarui '+fmt(i.updated_at);$('#cmsg').textContent=''}
+$('#ckey').onchange=pick;
+$('#csave').onclick=async()=>{try{await api('api/content/'+encodeURIComponent($('#ckey').value),{method:'PUT',body:JSON.stringify({body:$('#cbody').value})});$('#cmsg').textContent='Tersimpan & aktif ✓';await loadContent()}catch(e){$('#cmsg').textContent='Gagal menyimpan'}};
+
+tick();setInterval(tick,3000);
+setInterval(()=>{if(tab==='messages'&&$('#mauto').checked&&!$('#mq').value)loadMessages(true)},5000);
+</script></body></html>

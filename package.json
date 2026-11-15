@@ -1,0 +1,23 @@
+{
+  "name": "umkm-bot",
+  "version": "1.0.0",
+  "description": "Bot WhatsApp pendamping UMKM makanan agar produknya siap dijual di Shopee/TikTok Shop",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "check": "for f in src/*.js; do node --check $f || exit 1; done"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "latest",
+    "@supabase/supabase-js": "^2.119.0",
+    "dotenv": "^16.6.1",
+    "express": "^4.22.3",
+    "pdfkit": "^0.20.2",
+    "qrcode": "^1.5.4",
+    "qrcode-terminal": "^0.12.0",
+    "whatsapp-web.js": "^1.34.8"
+  }
+}
