@@ -1,6 +1,7 @@
 services:
   bot:
     build: .
+    hostname: umkm-bot               # nama tetap agar profil Chrome tidak dianggap milik komputer lain
     restart: unless-stopped          # hidup lagi otomatis setelah crash/reboot server
     env_file: .env
     environment:

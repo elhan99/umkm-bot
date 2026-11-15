@@ -1,6 +1,8 @@
 'use strict';
 
 require('dotenv').config();
+const fs = require('fs');
+const path = require('path');
 const { Client, LocalAuth, MessageMedia } = require('whatsapp-web.js');
 
 if (!process.env.ADMIN_PASSWORD) {
@@ -23,11 +25,17 @@ const status = { state: 'starting', qr: null, phone: null };
 
 const client = new Client({
     authStrategy: new LocalAuth(),
+    // Di server Linux: identitas browser harus KONSISTEN dengan browser aslinya (Chromium 156 di Linux),
+    // kalau tidak WhatsApp bisa menolak penautan (LOGOUT). Bisa diganti lewat WA_USER_AGENT.
+    // Di laptop dipakai bawaan library (terbukti jalan).
+    ...(process.env.WA_USER_AGENT || process.platform === 'linux'
+        ? { userAgent: process.env.WA_USER_AGENT || 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36' }
+        : {}),
     puppeteer: {
         headless: true,
         // Di Docker memakai Chromium sistem (PUPPETEER_EXECUTABLE_PATH); di laptop memakai Chrome bawaan Puppeteer.
         executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
-        args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
+        args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-gpu', '--disable-extensions'],
     },
 });
 
@@ -37,11 +45,35 @@ client.on('auth_failure', (m) => { status.state = 'disconnected'; console.error(
 client.on('ready', () => { status.state = 'ready'; status.qr = null; status.phone = client.info?.wid?.user || null; console.log('Bot siap 🚀'); });
 client.on('disconnected', (r) => { status.state = 'disconnected'; status.qr = null; status.phone = null; console.error('Terputus:', r); });
 
+// Mulai WhatsApp dengan percobaan ulang: koneksi pertama di server bisa lambat (>30 dtk) dan
+// tidak boleh membuat seluruh aplikasi mati.
+// Chrome meninggalkan file kunci profil saat crash/restart (apalagi di Docker, hostname berubah
+// tiap rebuild). Hanya satu proses yang memakai profil ini, jadi aman dihapus sebelum mulai.
+function clearStaleBrowserLocks() {
+    const dir = path.join(process.cwd(), '.wwebjs_auth', 'session');
+    for (const f of ['SingletonLock', 'SingletonCookie', 'SingletonSocket']) {
+        try { fs.rmSync(path.join(dir, f), { force: true }); } catch { /* abaikan */ }
+    }
+}
+
+async function startClient(attempt = 1) {
+    try {
+        status.state = 'starting';
+        clearStaleBrowserLocks();
+        await client.initialize();
+    } catch (err) {
+        const wait = Math.min(60_000, 10_000 * attempt);
+        console.error(`[wa] gagal memulai (percobaan ${attempt}): ${err?.message || err}. Coba lagi ${wait / 1000} dtk lagi.`);
+        try { await client.destroy(); } catch { /* abaikan */ }
+        setTimeout(() => startClient(attempt + 1), wait);
+    }
+}
+
 async function relink() {
     try { await client.logout(); } catch (e) { console.error('logout:', e.message); }
     try { await client.destroy(); } catch (e) { console.error('destroy:', e.message); }
-    status.state = 'starting'; status.qr = null; status.phone = null;
-    content.init(db).then(() => client.initialize());
+    status.qr = null; status.phone = null;
+    startClient();
 }
 
 web.start({
@@ -210,4 +242,4 @@ client.on('message', (msg) => {
     });
 });
 
-content.init(db).then(() => client.initialize());
+content.init(db).then(() => startClient());
